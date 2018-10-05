@@ -1,5 +1,6 @@
 #include <iostream>
 
 int main(){
-	std::cout << "Hello, The Bestest Team Ever!" << std::endl; //Added comma for grammar purposes
+IsaacMick-patch-1
+	std::cout << "Hello, The Bestest Team Ever" << std::endl;
 }
