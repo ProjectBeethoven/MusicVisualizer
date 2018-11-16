@@ -190,7 +190,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   note: {fileID: 1600004402762996, guid: 4d28bb0263055c2489a2624dfad3e3f8, type: 2}
   midiSource:
-    streamingAssetPath: ExampleMidis/test.mid
+    streamingAssetPath: Example Midis/Angels 3.mid
   userLengthMultiplier: 1
 --- !u!114 &841782983
 MonoBehaviour:
@@ -203,7 +203,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa6866a71e4440a488392fc48d4273e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: {fileID: 1159967345140248, guid: 84571e52479efcf479586ef7b6c746c9, type: 2}
+  whiteKeyGO: {fileID: 1159967345140248, guid: 8f5353578a7c2f740a0e2613737cd9ed, type: 2}
+  blackKeyGO: {fileID: 1826141296282528, guid: 63927511e0b914447890cd2fc948fefd, type: 2}
 --- !u!1 &864838144
 GameObject:
   m_ObjectHideFlags: 0
