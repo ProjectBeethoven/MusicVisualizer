@@ -74,10 +74,9 @@ public class Spawner : MonoBehaviour
         camHeight = Camera.main.orthographicSize * 2f;
         camWidth = camHeight * Screen.width / Screen.height;
         screenUnit = (camWidth / 88f);
-        magnitude = 1.2f * userLengthMultiplier / 98f;
+        magnitude = .5f * userLengthMultiplier / 98f;
     }
 
-    // Use this for initialization
     void Start()
     {
         //import MIDI file
@@ -150,7 +149,7 @@ public class Spawner : MonoBehaviour
     {
         toDraw.heightPositionOnScreen *= sizeScalar;
         toDraw.length *= sizeScalar;
-        toDraw.heightPositionOnScreen += camHeight + (toDraw.length / 2f);
+        toDraw.heightPositionOnScreen += (camHeight/2f) + (toDraw.length / 2f);
 
         Vector3 size = new Vector3(screenUnit, toDraw.length, toDraw.depth);
         Vector3 position = new Vector3(
@@ -160,7 +159,6 @@ public class Spawner : MonoBehaviour
 
         note.transform.localScale = size;
         Instantiate(note, position, Quaternion.identity);
-        //Debug.Log($"height: {toDraw.heightPositionOnScreen} length: {toDraw.length}");
     }
 
     private float xToWorldPoint(float x)
