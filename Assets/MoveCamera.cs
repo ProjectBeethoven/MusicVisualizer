@@ -17,12 +17,10 @@ public class MoveCamera : MonoBehaviour
     private void Start()
     {
         UpdateTempo(this.tempo);
-        Debug.Log($"Camspeed: {this.camSpeed}");
     }
 
     private void MidiLoaded(object sender, TempoChangedEventArgs e)
     {
-
     }
 
 
@@ -35,7 +33,6 @@ public class MoveCamera : MonoBehaviour
 
     float BPMtoUPS(float BPM)
     {
-        Debug.Log($"TEMPO UPDATE: bpm = {BPM} magnitude = {Spawner.magnitude}", gameObject);
         return (BPM * Spawner.magnitude * Spawner.division * speedMultiplier) / 60f;
     }
 
