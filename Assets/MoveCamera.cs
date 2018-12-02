@@ -6,7 +6,7 @@ public class MoveCamera : MonoBehaviour
 {
     [SerializeField]
     public float speedMultiplier = 1f;
-    private float tempo = 120f; //in beats per minute
+    private float tempo = 150f; //in beats per minute
     private float camSpeed; // in untiy units per second
 
     private void Awake()
