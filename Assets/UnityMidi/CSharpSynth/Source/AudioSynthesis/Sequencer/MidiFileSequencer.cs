@@ -24,7 +24,7 @@ namespace AudioSynthesis.Sequencer
         private MidiMessage[] mdata;
         private bool[] blockList;
         private bool playing = false;
-        private double playbackrate = 1.0; // 1/8 to 8
+        private double playbackrate = .92; // 1/8 to 8 //SHOULD BE 1.0 BY DEFAULT BUT THAT WAS TOO FAST?
         private int totalTime;
         private int sampleTime;
         private int eventIndex;
@@ -178,6 +178,13 @@ namespace AudioSynthesis.Sequencer
             for (int x = 0; x < mdata.Length; x++)
             {
                 MidiEvent mEvent = midiFile.Tracks[0].MidiEvents[x];
+                if (mEvent.Command == 0xC0)
+                {
+                    Debug.Log($"patch changed to: {mEvent.Data1}");
+                    mEvent.Data1 = 3; //CHANGE LATER.
+                    //mEvent.Data1 =
+                    //synthChannels[channel].program = (byte)data1;
+                }
                 mdata[x] = new MidiMessage((byte)mEvent.Channel, (byte)mEvent.Command, (byte)mEvent.Data1, (byte)mEvent.Data2);
                 absDelta += synth.SampleRate * mEvent.DeltaTime * (60.0 / (BPM * midiFile.Division));
                 mdata[x].delta = (int)absDelta;

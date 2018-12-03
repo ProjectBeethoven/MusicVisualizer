@@ -17,11 +17,6 @@ using static AudioSynthesis.Midi.MidiFile;
 
 public class pianoNote
 {
-    public pianoNote()
-    {
-        //Debug.Log("note created");
-    }
-
     public float width;
     public float length;
     public float depth = 0f;
@@ -49,8 +44,12 @@ public class TempoChangedEventArgs : EventArgs
 
 public class Spawner : MonoBehaviour
 {
+    int bufferHead;
+    float[] currentBuffer;
+
     [SerializeField] GameObject note;
     [SerializeField] StreamingAssetResouce midiSource;
+    [SerializeField] StreamingAssetResouce soundFontSource;
     [SerializeField] float userLengthMultiplier = 1;
 
 
@@ -59,39 +58,76 @@ public class Spawner : MonoBehaviour
 
     float camWidth;
     float camHeight;
-    float screenUnit;
+    float keyUnit;
+    float octaveUnit;
     public static float magnitude;
     public static int division;
+    public static int synthSampleRate = 44100;
+
+    Synthesizer synthesizer;
+    AudioSource audioSource;
+    MidiFileSequencer sequencer;
     MidiFile midi;
+    PatchBank soundFont;
+    bool useOriginalDelta = false;
 
     public static event MidiTempoChangedEvent MidiLoaded;
 
     private void Awake()
     {
-        Debug.Log("Spawner woke", gameObject);
-
-        //set constant values
+        magnitude = .01f * userLengthMultiplier / 100f;
         camHeight = Camera.main.orthographicSize * 2f;
         camWidth = camHeight * Screen.width / Screen.height;
-        screenUnit = (camWidth / 88f);
-        magnitude = .5f * userLengthMultiplier / 98f;
+        keyUnit = (camWidth / 52f); //screenUnit is the size of one white key on a piano.
+        octaveUnit = keyUnit * 7f; //width of white keys before pattern repeats.
+
+        synthesizer = new Synthesizer(synthSampleRate, 2, 1024, 1);
+        sequencer = new MidiFileSequencer(synthesizer); //set up a temporary midi file sequencer.
+        audioSource = GetComponent<AudioSource>();            
     }
 
     void Start()
     {
-        //import MIDI file
+        //import MIDI file and sound font
         midi = new MidiFile(midiSource);
         LoadMidi(midi);
+        LoadBank(new PatchBank(soundFontSource));
+        Play();
+    }
+
+    public void Play()
+    {
+        sequencer.Play();
+        audioSource.Play();
+    }
+
+    void OnAudioFilterRead(float[] data, int channel)
+    {
+        //Debug.Assert(this.channel == channel);
+        int count = 0;
+        while (count < data.Length)
+        {
+            if (currentBuffer == null || bufferHead >= currentBuffer.Length)
+            {
+                sequencer.FillMidiEventQueue();
+                synthesizer.GetNext();
+                currentBuffer = synthesizer.WorkingBuffer;
+                bufferHead = 0;
+            }
+            var length = Mathf.Min(currentBuffer.Length - bufferHead, data.Length - count);
+            System.Array.Copy(currentBuffer, bufferHead, data, count, length);
+            bufferHead += length;
+            count += length;
+        }
     }
 
     public void LoadMidi(MidiFile file)
     {
-        MidiFileSequencer sequencer = new MidiFileSequencer(new Synthesizer(44100, 2, 1024, 1)); //temporary needs changed
         sequencer.Stop();
         sequencer.UnloadMidi();
         sequencer.LoadMidi(file);
 
-        midiMessages = sequencer.getData();
+        midiMessages = sequencer.getData(); //grab midi data from sequencer to render notes
         division = file.Division;
 
         //-------------------parsing midi
@@ -100,13 +136,19 @@ public class Spawner : MonoBehaviour
 
         foreach (var message in midiMessages)
         {
-            /*var delta = (message.delta - previousDelta);
-            currentPosition += delta;
-            previousDelta += delta;*/
-
-            var delta = message.originalDelta;
-            currentPosition += delta;
-
+            var delta = 0f;
+            if (useOriginalDelta)
+            {
+                delta = message.originalDelta;
+                currentPosition += delta;
+            }
+            else
+            {
+                delta = (message.delta - previousDelta);
+                currentPosition += delta;
+                previousDelta += delta;
+            }
+            
             for (int i = 0; i < currentlyDrawing.Count; i++)
             {
                 currentlyDrawing[i].length += delta;
@@ -134,7 +176,7 @@ public class Spawner : MonoBehaviour
             if ((int)message.command == 0xFF && message.data1 == 0x51)
             {
                 //throw TEMPO CHANGED EVENT
-                Debug.Log($"BPM: {message.BPM}");
+                //Debug.Log($"BPM: {message.BPM}");
             }
         }
         //-------------------------------
@@ -147,32 +189,66 @@ public class Spawner : MonoBehaviour
 
     private void Draw(pianoNote toDraw, float sizeScalar)
     {
+        //Defines whether the key is white or black.
+        int[] whiteKeyMods = new int[7] { 0, 2, 3, 5, 7, 8, 10 };
+
+
         toDraw.heightPositionOnScreen *= sizeScalar;
         toDraw.length *= sizeScalar;
-        toDraw.heightPositionOnScreen += (camHeight/2f) + (toDraw.length / 2f);
+        //toDraw.heightPositionOnScreen += (camHeight / 2f) + (toDraw.length / 2f);
+        toDraw.heightPositionOnScreen += -2.6f + (toDraw.length / 2f);
 
-        Vector3 size = new Vector3(screenUnit, toDraw.length, toDraw.depth);
+        //get the octave a key resides in
+        //casting a float as an int will truncate off the decimal places. 
+        //effect is equivalent to Math.Floor as long as initial value is positive
+        int octave = (int)(toDraw.key / 12f);
+
+        bool keyIsBlack = true;
+        float whiteBaseValue = .5f; //keys are off by one half white key width starting at 0 for some reason. use .5f to fix
+        float keyWidth = keyUnit - .05f;
+
+        for (int i = 0; i < whiteKeyMods.Length; i++)
+        {
+            if (toDraw.key % 12 == whiteKeyMods[i])
+            {
+                whiteBaseValue += i;
+                keyIsBlack = false;
+                break;
+            }
+        }
+        if (keyIsBlack)
+        {
+            for (int i = 0; i < whiteKeyMods.Length; i++)
+            {
+                if (((toDraw.key - 1) % 12) == whiteKeyMods[i])
+                {
+                    whiteBaseValue += i + .5f;//because no two black keys touch, we add half to 
+                                              //get the position of the black key relative to the next white key down. 
+                                              //(assuming each black key is one half a white key width up)
+                    break;
+                }
+            }
+
+            keyWidth -= .1f;
+        }
+
+        //defines the size and position
+        Vector3 size = new Vector3(keyWidth, toDraw.length, toDraw.depth);
         Vector3 position = new Vector3(
-            (toDraw.key * screenUnit) - (camWidth / 2f),
+            (octave * octaveUnit) + (whiteBaseValue * keyUnit) - (camWidth / 2f),
             toDraw.heightPositionOnScreen,
-            toDraw.zIndex);
+            toDraw.zIndex + 100);
 
+        //draw note to screen
         note.transform.localScale = size;
         Instantiate(note, position, Quaternion.identity);
     }
 
-    private float xToWorldPoint(float x)
+    public void LoadBank(PatchBank bank)
     {
-        return Camera.main.ScreenToWorldPoint(new Vector3(x, 0, 0)).x;
-    }
-
-    private float yToWorldPoint(float y)
-    {
-        return Camera.main.ScreenToWorldPoint(new Vector3(0, y, 0)).y;
-    }
-
-    private float getPulsesPerQuarterNote()
-    {
-        return 44100f * (60f / (150 * midi.Division));
+        this.soundFont = bank;
+        synthesizer.UnloadBank();
+        synthesizer.LoadBank(bank);
     }
 }
+

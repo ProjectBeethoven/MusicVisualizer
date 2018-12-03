@@ -24,6 +24,7 @@
         public int Data1
         {
             get { return (message & 0x000FF00) >> 8; }
+            set { message = value; } //REMOVE THIS. USED TO SET PATCH NUMBER MANUALLY. YOU SHOULDN'T ASSIGN TO THIS!!!
         }
         public int Data2
         {

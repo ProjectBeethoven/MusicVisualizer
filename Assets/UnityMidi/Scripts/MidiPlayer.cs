@@ -50,10 +50,7 @@ namespace UnityMidi
 
             if (playOnAwake)
             {
-                //Play();
-                audioSource.Play();
-                Thread.Sleep(2000);
-                synthesizer.NoteOn(0, 60, 120);
+                Play();
             }
         }
 
@@ -74,8 +71,8 @@ namespace UnityMidi
 
         public void Play()
         {
-            //sequencer.Play();
-            //audioSource.Play();
+            sequencer.Play();
+            audioSource.Play();
         }
 
         void OnAudioFilterRead(float[] data, int channel)

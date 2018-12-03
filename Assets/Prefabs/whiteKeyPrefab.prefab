@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: 114328018425821402}
   - component: {fileID: 68069348992454626}
   - component: {fileID: 50101006952342696}
+  - component: {fileID: 68835832486348790}
   m_Layer: 0
   m_Name: whiteKeyPrefab
   m_TagString: Untagged
@@ -72,14 +73,31 @@ EdgeCollider2D:
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: 1.37}
   m_EdgeRadius: 0
   m_Points:
-  - {x: -0.20499998, y: 0}
-  - {x: 0.20499998, y: 0}
+  - {x: -0.05, y: 0}
+  - {x: 0.05, y: 0}
+--- !u!68 &68835832486348790
+EdgeCollider2D:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1159967345140248}
+  m_Enabled: 0
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0.5}
+  m_EdgeRadius: 0
+  m_Points:
+  - {x: -0.1, y: 0}
+  - {x: 0.1, y: 0}
 --- !u!114 &114328018425821402
 MonoBehaviour:
   m_ObjectHideFlags: 1

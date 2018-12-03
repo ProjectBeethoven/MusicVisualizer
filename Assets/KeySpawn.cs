@@ -47,7 +47,7 @@ public class KeySpawn : MonoBehaviour
                 Vector3 blackScaler = new Vector3(cameraWidth * scalerNum * .714266666f, (cameraWidth * scalerNum) * .714266666f, 0);
                 blackKeyRender.transform.localScale = blackScaler;
                 float blackXPos = x + whiteKeySize * .5f;
-                float blackYPos = y + whiteKeySize;
+                float blackYPos = y + whiteKeySize * 1.173f;
                 Instantiate(blackKeyGO, new Vector3(blackXPos, blackYPos, 9), Quaternion.identity);
             }
         }
